@@ -1,6 +1,7 @@
 package com.diegogiron.kinalapp.entity;
 
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "productos")
@@ -12,14 +13,15 @@ public class Producto {
 
     @Column(name = "nombre_producto")
     private String nombreProducto;
-    @Column
-    private double precio;
+    @Column(precision = 10, scale = 2)
+    private BigDecimal precio;
     @Column
     private int stock;
     @Column
     private int estado;
     public Producto() {}
-    public Producto(int codigoProducto, String nombreProducto, double precio, int stock, int estado) {
+
+    public Producto(int codigoProducto, String nombreProducto, BigDecimal precio, int stock, int estado) {
         this.codigoProducto = codigoProducto;
         this.nombreProducto = nombreProducto;
         this.precio = precio;
@@ -30,12 +32,11 @@ public class Producto {
     public void setCodigoProducto(int codigoProducto) { this.codigoProducto = codigoProducto; }
     public String getNombreProducto() { return nombreProducto; }
     public void setNombreProducto(String nombreProducto) { this.nombreProducto = nombreProducto; }
-
-    public double getPrecio() { return precio; }
-    public void setPrecio(double precio) { this.precio = precio; }
-
+    public BigDecimal getPrecio() { return precio; }
+    public void setPrecio(BigDecimal precio) { this.precio = precio; }
     public int getStock() { return stock; }
     public void setStock(int stock) { this.stock = stock; }
+
     public int getEstado() { return estado; }
     public void setEstado(int estado) { this.estado = estado; }
 }
