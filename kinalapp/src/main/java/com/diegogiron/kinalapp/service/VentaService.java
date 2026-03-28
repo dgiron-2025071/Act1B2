@@ -5,6 +5,7 @@ import com.diegogiron.kinalapp.repository.VentaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,24 +26,37 @@ public class VentaService implements IVentaService {
     }
 
     @Override
-    public Venta guardar(Venta venta) {
+    @Transactional(readOnly = true)
+    public List<Venta> listarPorEstado(int estado) {
+        List<Venta> ventas = ventaRepository.findAll();
+        return ventas.stream()
+                .filter(v -> v.getEstado() == estado)
+                .toList();
+    }
 
+    @Override
+    public Venta guardar(Venta venta) {
         if (venta.getCliente() == null) {
             throw new IllegalArgumentException("El cliente es obligatorio");
         }
         if (venta.getUsuario() == null) {
             throw new IllegalArgumentException("El usuario es obligatorio");
         }
-        if (venta.getEstado() == 0) {
+        if (venta.getTotal() == null) {
+            venta.setTotal(BigDecimal.ZERO);
+        }
+        if (venta.getEstado() == null || venta.getEstado() == 0) {
             venta.setEstado(1);
         }
         return ventaRepository.save(venta);
     }
+
     @Override
     @Transactional(readOnly = true)
     public Optional<Venta> buscarPorId(long id) {
         return ventaRepository.findById(id);
     }
+
     @Override
     public Venta actualizar(long id, Venta venta) {
         if (!ventaRepository.existsById(id)) {
@@ -51,6 +65,7 @@ public class VentaService implements IVentaService {
         venta.setCodigoVenta(id);
         return ventaRepository.save(venta);
     }
+
     @Override
     public void eliminar(long id) {
         if (!ventaRepository.existsById(id)) {
@@ -58,6 +73,7 @@ public class VentaService implements IVentaService {
         }
         ventaRepository.deleteById(id);
     }
+
     @Override
     @Transactional(readOnly = true)
     public boolean existePorId(long id) {
