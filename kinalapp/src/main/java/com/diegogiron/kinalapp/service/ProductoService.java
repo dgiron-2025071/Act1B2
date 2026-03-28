@@ -24,6 +24,7 @@ public class ProductoService implements IProductoService {
     public List<Producto> listarTodos() {
         return productoRepository.findAll();
     }
+
     @Override
     public Producto guardar(Producto producto) {
         validarProducto(producto);
@@ -48,6 +49,7 @@ public class ProductoService implements IProductoService {
         validarProducto(producto);
         return productoRepository.save(producto);
     }
+
     @Override
     public void eliminar(int id) {
         if(!productoRepository.existsById(id)){
@@ -55,18 +57,22 @@ public class ProductoService implements IProductoService {
         }
         productoRepository.deleteById(id);
     }
+
     @Override
     @Transactional(readOnly = true)
     public boolean existePorId(int id) {
         return productoRepository.existsById(id);
     }
+
     @Override
     @Transactional(readOnly = true)
     public List<Producto> listarPorEstado(int estado) {
-        return productoRepository.findAll().stream()
+        List<Producto> productos = productoRepository.findAll();
+        return productos.stream()
                 .filter(p -> p.getEstado() == estado)
                 .toList();
     }
+
     private void validarProducto(Producto producto){
         if(producto.getNombreProducto() == null || producto.getNombreProducto().trim().isEmpty()){
             throw new IllegalArgumentException("El nombre del producto es obligatorio");
