@@ -16,16 +16,28 @@ public class VentaController {
     public VentaController(IVentaService ventaService) {
         this.ventaService = ventaService;
     }
+
     @GetMapping
     public ResponseEntity<List<Venta>> listar(){
         return ResponseEntity.ok(ventaService.listarTodos());
     }
+
+    @GetMapping("/estado/{estado}")
+    public ResponseEntity<List<Venta>> listarPorEstado(@PathVariable int estado){
+        List<Venta> ventas = ventaService.listarPorEstado(estado);
+        if(ventas.isEmpty()){
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(ventas);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Venta> buscar(@PathVariable long id){
         return ventaService.buscarPorId(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
+
     @PostMapping
     public ResponseEntity<?> guardar(@RequestBody Venta venta){
         try{
@@ -35,6 +47,22 @@ public class VentaController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> actualizar(@PathVariable long id, @RequestBody Venta venta){
+        try{
+            if(!ventaService.existePorId(id)){
+                return ResponseEntity.notFound().build();
+            }
+            Venta ventaActualizada = ventaService.actualizar(id, venta);
+            return ResponseEntity.ok(ventaActualizada);
+        }catch (IllegalArgumentException e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }catch (RuntimeException e){
+            return ResponseEntity.notFound().build();
+        }
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable long id){
         if(!ventaService.existePorId(id)){
@@ -42,16 +70,5 @@ public class VentaController {
         }
         ventaService.eliminar(id);
         return ResponseEntity.noContent().build();
-    }
-    @PutMapping("/{id}")
-    public ResponseEntity<?> actualizar(@PathVariable long id, @RequestBody Venta venta){
-        try{
-            if(!ventaService.existePorId(id)){
-                return ResponseEntity.notFound().build();
-            }
-            return ResponseEntity.ok(ventaService.actualizar(id, venta));
-        }catch (Exception e){
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
     }
 }
