@@ -11,7 +11,9 @@ import java.util.Optional;
 @Service
 @Transactional
 public class UsuarioService implements IUsuarioService {
+
     private final UsuarioRepository usuarioRepository;
+
     public UsuarioService(UsuarioRepository usuarioRepository) {
         this.usuarioRepository = usuarioRepository;
     }
@@ -21,6 +23,7 @@ public class UsuarioService implements IUsuarioService {
     public List<Usuario> listarTodos() {
         return usuarioRepository.findAll();
     }
+
     @Override
     public Usuario guardar(Usuario usuario) {
         validarUsuario(usuario);
@@ -32,12 +35,12 @@ public class UsuarioService implements IUsuarioService {
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<Usuario> buscarPorId(int id) {
+    public Optional<Usuario> buscarPorId(long id) {
         return usuarioRepository.findById(id);
     }
 
     @Override
-    public Usuario actualizar(int id, Usuario usuario) {
+    public Usuario actualizar(long id, Usuario usuario) {
         if(!usuarioRepository.existsById(id)){
             throw new RuntimeException("Usuario no encontrado con ID " + id);
         }
@@ -47,17 +50,19 @@ public class UsuarioService implements IUsuarioService {
     }
 
     @Override
-    public void eliminar(int id) {
+    public void eliminar(long id) {
         if(!usuarioRepository.existsById(id)){
             throw new RuntimeException("Usuario no encontrado con ID " + id);
         }
         usuarioRepository.deleteById(id);
     }
+
     @Override
     @Transactional(readOnly = true)
-    public boolean existePorId(int id) {
+    public boolean existePorId(long id) {
         return usuarioRepository.existsById(id);
     }
+
     @Override
     @Transactional(readOnly = true)
     public List<Usuario> listarPorEstado(int estado) {
@@ -66,7 +71,7 @@ public class UsuarioService implements IUsuarioService {
                 .filter(u -> u.getEstado() == estado)
                 .toList();
     }
-    // VALIDACIONES
+
     private void validarUsuario(Usuario usuario){
         if(usuario.getUsername() == null || usuario.getUsername().trim().isEmpty()){
             throw new IllegalArgumentException("El username es obligatorio");
