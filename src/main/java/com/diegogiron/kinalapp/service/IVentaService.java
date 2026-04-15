@@ -6,7 +6,7 @@ import java.util.Optional;
 
 public interface IVentaService {
     List<Venta> listarTodos();
-    List<Venta> listarPorEstado(int estado);
+    List<Venta> findByEstado(int estado);
     Venta guardar(Venta venta);
     Optional<Venta> buscarPorId(long id);
     Venta actualizar(long id, Venta venta);

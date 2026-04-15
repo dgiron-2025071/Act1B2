@@ -3,10 +3,13 @@ package com.diegogiron.kinalapp.controller.web;
 import com.diegogiron.kinalapp.entity.*;
 import com.diegogiron.kinalapp.service.*;
 import jakarta.servlet.http.HttpSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -14,6 +17,8 @@ import java.util.List;
 @Controller
 @RequestMapping("/web/ventas")
 public class VentaWebController {
+
+    private static final Logger log = LoggerFactory.getLogger(VentaWebController.class);
 
     private final IVentaService ventaService;
     private final IClienteService clienteService;
@@ -33,13 +38,15 @@ public class VentaWebController {
 
     private boolean tieneAcceso(HttpSession session) {
         Usuario usuario = (Usuario) session.getAttribute("usuario");
-        return usuario != null && (usuario.getRol().equals("ADMIN") || usuario.getRol().equals("VENDEDOR"));
+        return usuario != null &&
+                (usuario.getRol().equals("ADMIN") || usuario.getRol().equals("VENDEDOR"));
     }
 
     @GetMapping
-    public String listar(Model model, @RequestParam(required = false) Integer estado, HttpSession session) {
+    public String listar(Model model, @RequestParam(required = false) Integer estado,
+                         HttpSession session) {
         if (!tieneAcceso(session)) return "redirect:/auth/login";
-        List<Venta> ventas = estado != null ? ventaService.listarPorEstado(estado) : ventaService.listarTodos();
+        List<Venta> ventas = estado != null ? ventaService.findByEstado(estado) : ventaService.listarTodos();
         model.addAttribute("ventas", ventas);
         model.addAttribute("titulo", "Gestión de Ventas");
         return "ventas/lista";
@@ -62,10 +69,11 @@ public class VentaWebController {
             venta.setFechaVenta(LocalDate.now());
             venta.setTotal(BigDecimal.ZERO);
             venta.setEstado(1);
-            ventaService.guardar(venta);
+            venta = ventaService.guardar(venta);
             ra.addFlashAttribute("success", "Venta creada. Agregue detalles.");
             return "redirect:/web/ventas/detalles/" + venta.getCodigoVenta();
         } catch (Exception e) {
+            log.error("Error al guardar venta", e);
             ra.addFlashAttribute("error", e.getMessage());
             return "redirect:/web/ventas/nuevo";
         }
@@ -91,7 +99,18 @@ public class VentaWebController {
         if (!tieneAcceso(session)) return "redirect:/auth/login";
         try {
             Venta venta = ventaService.buscarPorId(idVenta).orElseThrow();
+
+            if (venta.getEstado() == 0) {
+                ra.addFlashAttribute("error", "No se pueden agregar productos a una venta anulada");
+                return "redirect:/web/ventas/detalles/" + idVenta;
+            }
+
             Producto producto = productoService.buscarPorId(idProducto).orElseThrow();
+            if (producto.getStock() < cantidad) {
+                ra.addFlashAttribute("error", "Stock insuficiente. Disponible: " + producto.getStock());
+                return "redirect:/web/ventas/detalles/" + idVenta;
+            }
+
             DetalleVenta detalle = new DetalleVenta();
             detalle.setVenta(venta);
             detalle.setProducto(producto);
@@ -104,8 +123,13 @@ public class VentaWebController {
             BigDecimal nuevoTotal = venta.getTotal().add(detalle.getSubtotal());
             venta.setTotal(nuevoTotal);
             ventaService.guardar(venta);
+
+            producto.setStock(producto.getStock() - cantidad);
+            productoService.guardar(producto);
+
             ra.addFlashAttribute("success", "Detalle agregado");
         } catch (Exception e) {
+            log.error("Error al agregar detalle", e);
             ra.addFlashAttribute("error", e.getMessage());
         }
         return "redirect:/web/ventas/detalles/" + idVenta;
@@ -115,10 +139,31 @@ public class VentaWebController {
     public String eliminar(@PathVariable long id, RedirectAttributes ra, HttpSession session) {
         if (!tieneAcceso(session)) return "redirect:/auth/login";
         try {
-            ventaService.eliminar(id);
-            ra.addFlashAttribute("success", "Venta anulada");
-        } catch (RuntimeException e) {
-            ra.addFlashAttribute("error", "Error al anular venta");
+            Venta venta = ventaService.buscarPorId(id).orElse(null);
+            if (venta == null) {
+                ra.addFlashAttribute("error", "Venta no encontrada");
+                return "redirect:/web/ventas";
+            }
+            if (venta.getEstado() == 0) {
+                ra.addFlashAttribute("error", "La venta ya está anulada");
+                return "redirect:/web/ventas";
+            }
+
+            List<DetalleVenta> detalles = detalleVentaService.listar().stream()
+                    .filter(d -> d.getVenta().getCodigoVenta() == id)
+                    .toList();
+            for (DetalleVenta detalle : detalles) {
+                Producto producto = detalle.getProducto();
+                producto.setStock(producto.getStock() + detalle.getCantidad());
+                productoService.guardar(producto);
+            }
+
+            venta.setEstado(0);
+            ventaService.guardar(venta);
+
+            ra.addFlashAttribute("success", "Venta #" + id + " anulada y stock restaurado");
+        } catch (Exception e) {
+            ra.addFlashAttribute("error", "Error al anular la venta: " + e.getMessage());
         }
         return "redirect:/web/ventas";
     }

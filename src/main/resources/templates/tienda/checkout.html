@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Finalizar Compra</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <th:block th:with="titulo='Finalizar Compra'"/>
+
+    <div class="card">
+        <h4>Seleccione el cliente para la factura</h4>
+        <form th:action="@{/carrito/finalizar}" method="post">
+            <div class="form-group">
+                <label class="form-label">Cliente *</label>
+                <select name="dpiCliente" class="form-control" required>
+                    <option value="">-- Seleccione un cliente --</option>
+                    <option th:each="c : ${clientes}" th:value="${c.DPICliente}"
+                            th:text="${c.nombreCliente + ' ' + c.apellidoCliente + ' (' + c.DPICliente + ')'}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="alert alert-info">
+                <i class="fas fa-truck"></i> Pago contra entrega
+            </div>
+
+            <div class="d-flex gap-2 justify-content-end mt-4">
+                <a th:href="@{/carrito}" class="btn btn-outline">Volver al carrito</a>
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-check-circle"></i> Confirmar Compra
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

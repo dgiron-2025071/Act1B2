@@ -1,6 +1,7 @@
 package com.diegogiron.kinalapp.controller.web;
 
 import com.diegogiron.kinalapp.entity.Producto;
+import com.diegogiron.kinalapp.entity.Usuario;
 import com.diegogiron.kinalapp.service.IProductoService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
@@ -21,11 +22,12 @@ public class TiendaController {
 
     @GetMapping
     public String listarProductos(Model model, HttpSession session) {
-        if (session.getAttribute("usuario") == null) {
+        Usuario usuario = (Usuario) session.getAttribute("usuario");
+        if (usuario == null) {
             return "redirect:/auth/login";
         }
         model.addAttribute("titulo", "Tienda Kinal");
-        model.addAttribute("productos", productoService.listarPorEstado(1)); // solo activos
+        model.addAttribute("productos", productoService.listarPorEstado(1));
         return "tienda/index";
     }
 
