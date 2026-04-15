@@ -20,7 +20,7 @@ public class ProgramadorController {
         model.addAttribute("carnet", "2025071");
         model.addAttribute("correo", "dgiron-2025071@kinal.edu.gt");
         model.addAttribute("github", "https://github.com/dgiron-2025071");
-        model.addAttribute("descripcion", "Desarrollador Full Stack apasionado por crear soluciones elegantes. Estudiante de Perito Informática.");
+        model.addAttribute("descripcion", "Desarrollador en aprendizaje, apasionado por crear soluciones elegantes. Estudiante de Perito Informática.");
         model.addAttribute("habilidades", "Java, Spring Boot, Thymeleaf, PostgreSQL, HTML/CSS, JavaScript");
         return "perfil-programador";
     }

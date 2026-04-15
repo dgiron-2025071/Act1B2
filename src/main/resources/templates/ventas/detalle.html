@@ -21,7 +21,7 @@
         </p>
     </div>
 
-    <!-- FORMULARIO AGREGAR PRODUCTO (SOLO SI VENTA ACTIVA) -->
+    <!-- Formulario para agregar productos (solo si venta activa) -->
     <div th:if="${venta.estado == 1}" class="card mb-4">
         <h4>Agregar Producto</h4>
         <form th:action="@{/web/ventas/detalles/agregar}" method="post">
