@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:layout="">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${titulo} + ' | KinalApp'">KinalApp</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div style="background: #0B3D91; color: white; width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; font-size: 60px; font-weight: bold; box-shadow: 0 8px 20px rgba(0,0,0,0.1);">
+            K
+        </div>
+        <nav class="sidebar-nav">
+            <th:block th:if="${session.usuario != null}">
+                <!-- Opciones según rol -->
+                <th:block th:if="${session.usuario.rol == 'ADMIN' or session.usuario.rol == 'VENDEDOR'}">
+                    <a th:href="@{/web/dashboard}" class="nav-item">
+                        <i class="fas fa-chart-pie"></i> Dashboard
+                    </a>
+                    <a th:href="@{/web/clientes}" class="nav-item">
+                        <i class="fas fa-users"></i> Clientes
+                    </a>
+                    <a th:href="@{/web/productos}" class="nav-item">
+                        <i class="fas fa-box"></i> Productos
+                    </a>
+                    <a th:href="@{/web/usuarios}" class="nav-item">
+                        <i class="fas fa-user-shield"></i> Usuarios
+                    </a>
+                    <a th:href="@{/web/ventas}" class="nav-item">
+                        <i class="fas fa-shopping-cart"></i> Ventas
+                    </a>
+                    <a th:href="@{/web/detalle-ventas}" class="nav-item">
+                        <i class="fas fa-list-ul"></i> Detalle Ventas
+                    </a>
+                </th:block>
+
+                <!-- Tienda y Carrito para todos -->
+                <a th:href="@{/tienda}" class="nav-item">
+                    <i class="fas fa-store"></i> Tienda
+                </a>
+                <a th:href="@{/carrito}" class="nav-item">
+                    <i class="fas fa-shopping-basket"></i> Mi Carrito
+                </a>
+
+                <!-- Perfil Programador (accesible para todos los logueados) -->
+                <a th:href="@{/web/programador}" class="nav-item">
+                    <i class="fas fa-code"></i> Sobre el Programador
+                </a>
+
+                <hr style="border-color: rgba(255,255,255,0.2); margin: 1rem 0;">
+
+                <!-- Cerrar sesión -->
+                <a th:href="@{/auth/logout}" class="nav-item text-danger">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                </a>
+            </th:block>
+        </nav>
+    </aside>
+
+    <!-- Contenido principal -->
+    <main class="main-content">
+        <!-- Header con info de usuario -->
+        <header class="header">
+            <h1 class="page-title" th:text="${titulo}">Dashboard</h1>
+            <div class="user-info" th:if="${session.usuario != null}">
+                <div class="avatar">
+                    <span th:text="${#strings.substring(session.usuario.username, 0, 1)}">U</span>
+                </div>
+                <div>
+                    <div th:text="${session.usuario.username}"></div>
+                    <small style="color: var(--gray-600);" th:text="${session.usuario.rol}"></small>
+                </div>
+            </div>
+        </header>
+
+        <!-- Alertas -->
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+        <!-- Contenido específico de página -->
+        <th:block layout:fragment="content" />
+    </main>
+</div>
+<script th:replace="~{fragments/scripts :: scripts}"></script>
+</body>
+</html>

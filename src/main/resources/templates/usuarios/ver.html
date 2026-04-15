@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Detalle Usuario</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <th:block th:with="titulo='Detalle del Usuario'"/>
+
+    <div class="card">
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Código:</strong> <span th:text="${usuario.codigoUsuario}"></span></p>
+                <p><strong>Username:</strong> <span th:text="${usuario.username}"></span></p>
+                <p><strong>Email:</strong> <span th:text="${usuario.email}"></span></p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Rol:</strong> <span th:text="${usuario.rol}"></span></p>
+                <p><strong>Estado:</strong>
+                    <span th:if="${usuario.estado == 1}" class="badge badge-success">Activo</span>
+                    <span th:if="${usuario.estado == 0}" class="badge badge-danger">Inactivo</span>
+                </p>
+            </div>
+        </div>
+        <div class="mt-4">
+            <a th:href="@{/web/usuarios}" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Volver</a>
+            <a th:href="@{/web/usuarios/editar/{id}(id=${usuario.codigoUsuario})}" class="btn btn-primary"><i class="fas fa-edit"></i> Editar</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

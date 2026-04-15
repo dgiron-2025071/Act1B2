@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Usuarios</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <th:block th:with="titulo='Gestión de Usuarios'"/>
+
+    <div class="filter-bar">
+        <a th:href="@{/web/usuarios}" class="filter-btn" th:classappend="${param.estado == null} ? 'active'">Todos</a>
+        <a th:href="@{/web/usuarios(estado=1)}" class="filter-btn" th:classappend="${param.estado == '1'} ? 'active'">Activos</a>
+        <a th:href="@{/web/usuarios(estado=0)}" class="filter-btn" th:classappend="${param.estado == '0'} ? 'active'">Inactivos</a>
+        <a th:href="@{/web/usuarios/nuevo}" class="btn btn-primary ms-auto">
+            <i class="fas fa-plus-circle"></i> Nuevo Usuario
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="table-container">
+            <table>
+                <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Rol</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="u : ${usuarios}">
+                    <td th:text="${u.codigoUsuario}"></td>
+                    <td th:text="${u.username}"></td>
+                    <td th:text="${u.email}"></td>
+                    <td th:text="${u.rol}"></td>
+                    <td>
+                        <span th:if="${u.estado == 1}" class="badge badge-success">Activo</span>
+                        <span th:if="${u.estado == 0}" class="badge badge-danger">Inactivo</span>
+                    </td>
+                    <td>
+                        <div class="d-flex gap-2">
+                            <a th:href="@{/web/usuarios/ver/{id}(id=${u.codigoUsuario})}" class="btn btn-outline btn-sm"><i class="fas fa-eye"></i></a>
+                            <a th:href="@{/web/usuarios/editar/{id}(id=${u.codigoUsuario})}" class="btn btn-outline btn-sm"><i class="fas fa-edit"></i></a>
+                            <a th:href="@{/web/usuarios/eliminar/{id}(id=${u.codigoUsuario})}" class="btn btn-danger btn-sm btn-delete"><i class="fas fa-trash"></i></a>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${usuarios == null or usuarios.empty}">
+                    <td colspan="6" class="text-center py-4">No hay usuarios registrados</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>
