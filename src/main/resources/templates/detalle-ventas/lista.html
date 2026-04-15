@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Detalle Ventas</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <th:block th:with="titulo='Detalles de Ventas'"/>
+
+    <div class="filter-bar">
+        <a th:href="@{/web/detalle-ventas}" class="filter-btn" th:classappend="${param.estado == null} ? 'active'">Todos</a>
+        <a th:href="@{/web/detalle-ventas(estado=1)}" class="filter-btn" th:classappend="${param.estado == '1'} ? 'active'">Activos</a>
+        <a th:href="@{/web/detalle-ventas(estado=0)}" class="filter-btn" th:classappend="${param.estado == '0'} ? 'active'">Inactivos</a>
+    </div>
+
+    <div class="card">
+        <div class="table-container">
+            <table>
+                <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Venta</th>
+                    <th>Producto</th>
+                    <th>Cantidad</th>
+                    <th>P. Unitario</th>
+                    <th>Subtotal</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="d : ${detalles}">
+                    <td th:text="${d.codigoDetalle}"></td>
+                    <td th:text="${d.venta?.codigoVenta}"></td>
+                    <td th:text="${d.producto?.nombreProducto}"></td>
+                    <td th:text="${d.cantidad}"></td>
+                    <td>Q <span th:text="${#numbers.formatDecimal(d.precioUnitario, 0, 'COMMA', 2, 'POINT')}"></span></td>
+                    <td>Q <span th:text="${#numbers.formatDecimal(d.subtotal, 0, 'COMMA', 2, 'POINT')}"></span></td>
+                    <td>
+                        <span th:if="${d.estado == 1}" class="badge badge-success">Activo</span>
+                        <span th:if="${d.estado == 0}" class="badge badge-danger">Inactivo</span>
+                    </td>
+                    <td>
+                        <div class="d-flex gap-2">
+                            <a th:href="@{/web/detalle-ventas/ver/{id}(id=${d.codigoDetalle})}" class="btn btn-outline btn-sm"><i class="fas fa-eye"></i></a>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${detalles == null or detalles.empty}">
+                    <td colspan="8" class="text-center py-4">No hay detalles registrados</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

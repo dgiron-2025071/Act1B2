@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Ventas</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <th:block th:with="titulo='Gestión de Ventas'"/>
+
+    <div class="filter-bar">
+        <a th:href="@{/web/ventas}" class="filter-btn" th:classappend="${param.estado == null} ? 'active'">Todos</a>
+        <a th:href="@{/web/ventas(estado=1)}" class="filter-btn" th:classappend="${param.estado == '1'} ? 'active'">Activas</a>
+        <a th:href="@{/web/ventas(estado=0)}" class="filter-btn" th:classappend="${param.estado == '0'} ? 'active'">Anuladas</a>
+        <a th:href="@{/web/ventas/nuevo}" class="btn btn-primary ms-auto">
+            <i class="fas fa-plus-circle"></i> Nueva Venta
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="table-container">
+            <table>
+                <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Fecha</th>
+                    <th>Cliente</th>
+                    <th>Vendedor</th>
+                    <th>Total</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="v : ${ventas}">
+                    <td th:text="${v.codigoVenta}"></td>
+                    <td th:text="${v.fechaVenta}"></td>
+                    <td th:text="${v.cliente?.nombreCliente + ' ' + v.cliente?.apellidoCliente}"></td>
+                    <td th:text="${v.usuario?.username}"></td>
+                    <td>Q <span th:text="${#numbers.formatDecimal(v.total, 0, 'COMMA', 2, 'POINT')}"></span></td>
+                    <td>
+                        <span th:if="${v.estado == 1}" class="badge badge-success">Activa</span>
+                        <span th:if="${v.estado == 0}" class="badge badge-danger">Anulada</span>
+                    </td>
+                    <td>
+                        <div class="d-flex gap-2">
+                            <a th:href="@{/web/ventas/ver/{id}(id=${v.codigoVenta})}" class="btn btn-outline btn-sm"><i class="fas fa-eye"></i></a>
+                            <a th:href="@{/web/ventas/eliminar/{id}(id=${v.codigoVenta})}" class="btn btn-danger btn-sm btn-delete"><i class="fas fa-ban"></i></a>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${ventas == null or ventas.empty}">
+                    <td colspan="7" class="text-center py-4">No hay ventas registradas</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>
