@@ -23,10 +23,10 @@ public class ResourceController {
                 .body(resource);
     }
 
-    @GetMapping(value = "/images/logo.png", produces = MediaType.IMAGE_PNG_VALUE)
+    @GetMapping(value = "/images/logoo.png", produces = MediaType.IMAGE_PNG_VALUE)
     @ResponseBody
     public ResponseEntity<Resource> getLogo() {
-        Resource resource = new ClassPathResource("static/images/logo.png");
+        Resource resource = new ClassPathResource("static/images/logoo.png");
         if (!resource.exists()) {
             return ResponseEntity.notFound().build();
         }

@@ -7,13 +7,16 @@
 </head>
 <body>
 <div layout:fragment="content">
+    <th:block th:with="titulo='Sobre el Programador'"/>
+
     <div class="card" style="max-width: 700px; margin: 0 auto;">
         <div class="text-center mb-4">
-            <div style="width: 120px; height: 120px; background: var(--primary); border-radius: 50%; margin: 0 auto 1.5rem; display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem; font-weight: bold;">
-                <span th:text="${#strings.substring(nombre, 0, 1)}">D</span>
-            </div>
-            <h2 th:text="${nombre}" style="color: var(--primary-dark);">Diego Girón</h2>
-            <p class="badge badge-success" th:text="${carnet}">2025071</p>
+            <!-- FOTO DEL PROGRAMADOR -->
+            <img th:src="@{/images/dgiron.png}"
+                 alt="Foto de Diego Girón"
+                 class="profile-photo">
+            <h2 th:text="${nombre}" style="color: var(--primary-dark); margin-top: 1rem;">Diego Girón</h2>
+            <p class="badge badge-success" th:text="${carnet}">2020-40123</p>
         </div>
 
         <div class="row">

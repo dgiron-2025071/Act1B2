@@ -11,14 +11,12 @@
 <body>
 <div class="login-container">
     <div class="login-card">
-            <div style="background: #0B3D91; color: white; width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; font-size: 60px; font-weight: bold; box-shadow: 0 8px 20px rgba(0,0,0,0.1);">
-                K
-            </div>
+        <div class="login-logo">
+            <img th:src="@{/images/logoo.png}" alt="Kinal Logo" style="max-width: 120px; border-radius: 50%; padding: 8px; background: var(--accent);">
+        </div>
         <h2 class="text-center mb-4" style="color: var(--primary-dark);">Bienvenido</h2>
 
-        <!-- Mensaje de error -->
         <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
-        <!-- Mensaje de éxito (después de registro) -->
         <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
 
         <form th:action="@{/auth/login}" method="post">

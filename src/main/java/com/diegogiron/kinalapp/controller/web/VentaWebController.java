@@ -55,7 +55,6 @@ public class VentaWebController {
     @GetMapping("/nuevo")
     public String nuevo(Model model, HttpSession session) {
         if (!tieneAcceso(session)) return "redirect:/auth/login";
-        model.addAttribute("venta", new Venta());
         model.addAttribute("clientes", clienteService.listarPorEstado(1));
         model.addAttribute("usuarios", usuarioService.listarPorEstado(1));
         model.addAttribute("titulo", "Nueva Venta");
@@ -63,17 +62,27 @@ public class VentaWebController {
     }
 
     @PostMapping("/guardar")
-    public String guardar(@ModelAttribute Venta venta, RedirectAttributes ra, HttpSession session) {
+    public String guardar(@RequestParam String dpiCliente,
+                          @RequestParam long codigoUsuario,
+                          RedirectAttributes ra, HttpSession session) {
         if (!tieneAcceso(session)) return "redirect:/auth/login";
         try {
+            Cliente cliente = clienteService.buscarPorDPI(dpiCliente)
+                    .orElseThrow(() -> new IllegalArgumentException("Cliente no encontrado"));
+            Usuario usuario = usuarioService.buscarPorId(codigoUsuario)
+                    .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+
+            Venta venta = new Venta();
             venta.setFechaVenta(LocalDate.now());
             venta.setTotal(BigDecimal.ZERO);
             venta.setEstado(1);
+            venta.setCliente(cliente);
+            venta.setUsuario(usuario);
             venta = ventaService.guardar(venta);
+
             ra.addFlashAttribute("success", "Venta creada. Agregue detalles.");
             return "redirect:/web/ventas/detalles/" + venta.getCodigoVenta();
         } catch (Exception e) {
-            log.error("Error al guardar venta", e);
             ra.addFlashAttribute("error", e.getMessage());
             return "redirect:/web/ventas/nuevo";
         }
