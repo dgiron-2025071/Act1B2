@@ -24,7 +24,7 @@ public class VentaController {
 
     @GetMapping("/estado/{estado}")
     public ResponseEntity<List<Venta>> listarPorEstado(@PathVariable int estado){
-        List<Venta> ventas = ventaService.listarPorEstado(estado);
+        List<Venta> ventas = ventaService.findByEstado(estado);
         if(ventas.isEmpty()){
             return ResponseEntity.noContent().build();
         }

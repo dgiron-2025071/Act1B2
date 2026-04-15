@@ -27,11 +27,9 @@ public class VentaService implements IVentaService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Venta> listarPorEstado(int estado) {
-        List<Venta> ventas = ventaRepository.findAll();
-        return ventas.stream()
-                .filter(v -> v.getEstado() == estado)
-                .toList();
+    public List<Venta> findByEstado(int estado) {
+        // Método corregido: usar el nombre correcto definido en la interfaz
+        return ventaRepository.findByEstado(estado);
     }
 
     @Override
@@ -45,7 +43,7 @@ public class VentaService implements IVentaService {
         if (venta.getTotal() == null) {
             venta.setTotal(BigDecimal.ZERO);
         }
-        if (venta.getEstado() == null || venta.getEstado() == 0) {
+        if (venta.getCodigoVenta() == 0 && venta.getEstado() == null) {
             venta.setEstado(1);
         }
         return ventaRepository.save(venta);
