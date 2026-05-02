@@ -2,9 +2,10 @@ package com.diegogiron.kinalapp.controller.web;
 
 import com.diegogiron.kinalapp.entity.*;
 import com.diegogiron.kinalapp.service.*;
-import jakarta.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -36,16 +37,18 @@ public class VentaWebController {
         this.detalleVentaService = detalleVentaService;
     }
 
-    private boolean tieneAcceso(HttpSession session) {
-        Usuario usuario = (Usuario) session.getAttribute("usuario");
-        return usuario != null &&
-                (usuario.getRol().equals("ADMIN") || usuario.getRol().equals("VENDEDOR"));
+    private Usuario getUsuarioAutenticado() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            return null;
+        }
+        String username = auth.getName();
+        return usuarioService.buscarPorUsername(username).orElse(null);
     }
 
     @GetMapping
-    public String listar(Model model, @RequestParam(required = false) Integer estado,
-                         HttpSession session) {
-        if (!tieneAcceso(session)) return "redirect:/auth/login";
+    public String listar(Model model, @RequestParam(required = false) Integer estado) {
+        if (getUsuarioAutenticado() == null) return "redirect:/auth/login";
         List<Venta> ventas = estado != null ? ventaService.findByEstado(estado) : ventaService.listarTodos();
         model.addAttribute("ventas", ventas);
         model.addAttribute("titulo", "Gestión de Ventas");
@@ -53,8 +56,8 @@ public class VentaWebController {
     }
 
     @GetMapping("/nuevo")
-    public String nuevo(Model model, HttpSession session) {
-        if (!tieneAcceso(session)) return "redirect:/auth/login";
+    public String nuevo(Model model) {
+        if (getUsuarioAutenticado() == null) return "redirect:/auth/login";
         model.addAttribute("clientes", clienteService.listarPorEstado(1));
         model.addAttribute("usuarios", usuarioService.listarPorEstado(1));
         model.addAttribute("titulo", "Nueva Venta");
@@ -64,8 +67,8 @@ public class VentaWebController {
     @PostMapping("/guardar")
     public String guardar(@RequestParam String dpiCliente,
                           @RequestParam long codigoUsuario,
-                          RedirectAttributes ra, HttpSession session) {
-        if (!tieneAcceso(session)) return "redirect:/auth/login";
+                          RedirectAttributes ra) {
+        if (getUsuarioAutenticado() == null) return "redirect:/auth/login";
         try {
             Cliente cliente = clienteService.buscarPorDPI(dpiCliente)
                     .orElseThrow(() -> new IllegalArgumentException("Cliente no encontrado"));
@@ -89,8 +92,8 @@ public class VentaWebController {
     }
 
     @GetMapping("/detalles/{idVenta}")
-    public String gestionarDetalles(@PathVariable long idVenta, Model model, HttpSession session) {
-        if (!tieneAcceso(session)) return "redirect:/auth/login";
+    public String gestionarDetalles(@PathVariable long idVenta, Model model) {
+        if (getUsuarioAutenticado() == null) return "redirect:/auth/login";
         Venta venta = ventaService.buscarPorId(idVenta).orElseThrow();
         List<DetalleVenta> detalles = detalleVentaService.listar().stream()
                 .filter(d -> d.getVenta().getCodigoVenta() == idVenta).toList();
@@ -104,22 +107,19 @@ public class VentaWebController {
 
     @PostMapping("/detalles/agregar")
     public String agregarDetalle(@RequestParam long idVenta, @RequestParam int idProducto,
-                                 @RequestParam int cantidad, RedirectAttributes ra, HttpSession session) {
-        if (!tieneAcceso(session)) return "redirect:/auth/login";
+                                 @RequestParam int cantidad, RedirectAttributes ra) {
+        if (getUsuarioAutenticado() == null) return "redirect:/auth/login";
         try {
             Venta venta = ventaService.buscarPorId(idVenta).orElseThrow();
-
             if (venta.getEstado() == 0) {
                 ra.addFlashAttribute("error", "No se pueden agregar productos a una venta anulada");
                 return "redirect:/web/ventas/detalles/" + idVenta;
             }
-
             Producto producto = productoService.buscarPorId(idProducto).orElseThrow();
             if (producto.getStock() < cantidad) {
                 ra.addFlashAttribute("error", "Stock insuficiente. Disponible: " + producto.getStock());
                 return "redirect:/web/ventas/detalles/" + idVenta;
             }
-
             DetalleVenta detalle = new DetalleVenta();
             detalle.setVenta(venta);
             detalle.setProducto(producto);
@@ -145,8 +145,8 @@ public class VentaWebController {
     }
 
     @GetMapping("/eliminar/{id}")
-    public String eliminar(@PathVariable long id, RedirectAttributes ra, HttpSession session) {
-        if (!tieneAcceso(session)) return "redirect:/auth/login";
+    public String eliminar(@PathVariable long id, RedirectAttributes ra) {
+        if (getUsuarioAutenticado() == null) return "redirect:/auth/login";
         try {
             Venta venta = ventaService.buscarPorId(id).orElse(null);
             if (venta == null) {
@@ -157,19 +157,15 @@ public class VentaWebController {
                 ra.addFlashAttribute("error", "La venta ya está anulada");
                 return "redirect:/web/ventas";
             }
-
             List<DetalleVenta> detalles = detalleVentaService.listar().stream()
-                    .filter(d -> d.getVenta().getCodigoVenta() == id)
-                    .toList();
+                    .filter(d -> d.getVenta().getCodigoVenta() == id).toList();
             for (DetalleVenta detalle : detalles) {
                 Producto producto = detalle.getProducto();
                 producto.setStock(producto.getStock() + detalle.getCantidad());
                 productoService.guardar(producto);
             }
-
             venta.setEstado(0);
             ventaService.guardar(venta);
-
             ra.addFlashAttribute("success", "Venta #" + id + " anulada y stock restaurado");
         } catch (Exception e) {
             ra.addFlashAttribute("error", "Error al anular la venta: " + e.getMessage());
@@ -178,10 +174,16 @@ public class VentaWebController {
     }
 
     @GetMapping("/ver/{id}")
-    public String ver(@PathVariable long id, Model model, RedirectAttributes ra, HttpSession session) {
-        if (!tieneAcceso(session)) return "redirect:/auth/login";
+    public String ver(@PathVariable long id, Model model, RedirectAttributes ra) {
+        if (getUsuarioAutenticado() == null) return "redirect:/auth/login";
         return ventaService.buscarPorId(id)
-                .map(venta -> { model.addAttribute("venta", venta); return "ventas/ver"; })
-                .orElseGet(() -> { ra.addFlashAttribute("error", "Venta no encontrada"); return "redirect:/web/ventas"; });
+                .map(venta -> {
+                    model.addAttribute("venta", venta);
+                    return "ventas/ver";
+                })
+                .orElseGet(() -> {
+                    ra.addFlashAttribute("error", "Venta no encontrada");
+                    return "redirect:/web/ventas";
+                });
     }
 }
