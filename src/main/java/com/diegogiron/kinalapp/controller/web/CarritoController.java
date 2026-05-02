@@ -5,6 +5,8 @@ import com.diegogiron.kinalapp.service.*;
 import jakarta.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -38,10 +40,26 @@ public class CarritoController {
         this.usuarioService = usuarioService;
     }
 
+    private Usuario getUsuarioAutenticado() {
+        Authentication auth = SecurityContextHolder
+                .getContext()
+                .getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
+            String username = auth.getName();
+            return usuarioService.buscarPorUsername(username).orElse(null);
+        }
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<Integer, Integer> getCarrito(HttpSession session) {
+        Map<Integer, Integer> carrito = (Map<Integer, Integer>) session.getAttribute("carrito");
+        return carrito != null ? carrito : new HashMap<>();
+    }
+
     @GetMapping
     public String verCarrito(Model model, HttpSession session) {
-        Usuario usuario = (Usuario) session.getAttribute("usuario");
-        if (usuario == null) {
+        if (getUsuarioAutenticado() == null) {
             return "redirect:/auth/login";
         }
 
@@ -64,7 +82,6 @@ public class CarritoController {
             }
         }
         session.setAttribute("carrito", carrito);
-
         model.addAttribute("items", items);
         model.addAttribute("total", total);
         model.addAttribute("titulo", "Mi Carrito");
@@ -81,16 +98,13 @@ public class CarritoController {
             ra.addFlashAttribute("error", "Producto no disponible");
             return "redirect:/tienda";
         }
-
         if (producto.getStock() < cantidad) {
             ra.addFlashAttribute("error", "Stock insuficiente. Disponible: " + producto.getStock());
             return "redirect:/tienda";
         }
-
         Map<Integer, Integer> carrito = getCarrito(session);
         carrito.merge(idProducto, cantidad, Integer::sum);
         session.setAttribute("carrito", carrito);
-
         ra.addFlashAttribute("success", "Producto agregado al carrito");
         return "redirect:/tienda";
     }
@@ -119,8 +133,9 @@ public class CarritoController {
 
     @GetMapping("/checkout")
     public String checkout(Model model, HttpSession session) {
-        Usuario usuario = (Usuario) session.getAttribute("usuario");
-        if (usuario == null) return "redirect:/auth/login";
+        if (getUsuarioAutenticado() == null) {
+            return "redirect:/auth/login";
+        }
 
         Map<Integer, Integer> carrito = getCarrito(session);
         if (carrito.isEmpty()) {
@@ -129,7 +144,7 @@ public class CarritoController {
 
         List<Cliente> clientes = clienteService.listarPorEstado(1);
         if (clientes.isEmpty()) {
-            model.addAttribute("error", "No hay clientes registrados. Contacte al administrador.");
+            model.addAttribute("error", "No hay clientes registrados.");
             return "redirect:/carrito";
         }
 
@@ -142,18 +157,17 @@ public class CarritoController {
     public String finalizarCompra(@RequestParam(required = false) String dpiCliente,
                                   HttpSession session,
                                   RedirectAttributes ra) {
-        Usuario usuario = (Usuario) session.getAttribute("usuario");
+        Usuario usuario = getUsuarioAutenticado();
         if (usuario == null) {
             return "redirect:/auth/login";
         }
 
         Map<Integer, Integer> carrito = getCarrito(session);
         if (carrito.isEmpty()) {
-            ra.addFlashAttribute("error", "❌ El carrito está vacío");
+            ra.addFlashAttribute("error", "El carrito está vacío");
             return "redirect:/carrito";
         }
 
-        // Obtener cliente
         Cliente cliente = null;
         if (dpiCliente != null && !dpiCliente.isEmpty()) {
             cliente = clienteService.buscarPorDPI(dpiCliente).orElse(null);
@@ -163,16 +177,12 @@ public class CarritoController {
                 cliente = clientes.get(0);
             }
         }
-
         if (cliente == null) {
             ra.addFlashAttribute("error", "No se pudo determinar el cliente para la venta");
             return "redirect:/carrito/checkout";
         }
 
         try {
-            log.info("Iniciando finalización de compra para usuario: {}", usuario.getUsername());
-
-            // Crear venta
             Venta venta = new Venta();
             venta.setFechaVenta(LocalDate.now());
             venta.setTotal(BigDecimal.ZERO);
@@ -180,19 +190,15 @@ public class CarritoController {
             venta.setCliente(cliente);
             venta.setUsuario(usuario);
             venta = ventaService.guardar(venta);
-            log.info("Venta creada con ID: {}", venta.getCodigoVenta());
 
             BigDecimal totalVenta = BigDecimal.ZERO;
-
             for (Map.Entry<Integer, Integer> entry : carrito.entrySet()) {
                 Producto producto = productoService.buscarPorId(entry.getKey())
                         .orElseThrow(() -> new RuntimeException("Producto no encontrado: " + entry.getKey()));
-
                 int cantidad = entry.getValue();
                 if (producto.getStock() < cantidad) {
                     throw new RuntimeException("Stock insuficiente para: " + producto.getNombreProducto());
                 }
-
                 DetalleVenta detalle = new DetalleVenta();
                 detalle.setVenta(venta);
                 detalle.setProducto(producto);
@@ -203,43 +209,28 @@ public class CarritoController {
                 detalleVentaService.guardar(detalle);
 
                 totalVenta = totalVenta.add(detalle.getSubtotal());
-
-                // Descontar stock
                 producto.setStock(producto.getStock() - cantidad);
                 productoService.guardar(producto);
-                log.info("Producto {} stock reducido a {}", producto.getNombreProducto(), producto.getStock());
             }
 
             venta.setTotal(totalVenta);
             ventaService.guardar(venta);
-
-            // Limpiar carrito
             session.removeAttribute("carrito");
-
-            log.info("Compra finalizada exitosamente. Total: Q {}", totalVenta);
-            ra.addFlashAttribute("success",
-                    " ¡Compra realizada con éxito! Pago contra entrega. Total: Q " + totalVenta);
+            ra.addFlashAttribute("success", "¡Compra realizada con éxito! Total: Q " + totalVenta);
             return "redirect:/tienda";
 
         } catch (Exception e) {
             log.error("Error al finalizar compra", e);
-            ra.addFlashAttribute("error", " Error al procesar la compra: " + e.getMessage());
+            ra.addFlashAttribute("error", "Error al procesar la compra: " + e.getMessage());
             return "redirect:/carrito";
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private Map<Integer, Integer> getCarrito(HttpSession session) {
-        Map<Integer, Integer> carrito = (Map<Integer, Integer>) session.getAttribute("carrito");
-        return carrito != null ? carrito : new HashMap<>();
-    }
-
-    // Clase interna
     public static class ItemCarrito {
         private Producto producto;
         private int cantidad;
         private BigDecimal subtotal;
-        // getters y setters
+
         public Producto getProducto() { return producto; }
         public void setProducto(Producto producto) { this.producto = producto; }
         public int getCantidad() { return cantidad; }

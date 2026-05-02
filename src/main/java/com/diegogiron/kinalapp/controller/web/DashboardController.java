@@ -2,11 +2,13 @@ package com.diegogiron.kinalapp.controller.web;
 
 import com.diegogiron.kinalapp.entity.Usuario;
 import com.diegogiron.kinalapp.service.*;
-import jakarta.servlet.http.HttpSession;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
@@ -27,14 +29,18 @@ public class DashboardController {
         this.usuarioService = usuarioService;
     }
 
-    private boolean tieneAcceso(HttpSession session) {
-        Usuario usuario = (Usuario) session.getAttribute("usuario");
-        return usuario != null && (usuario.getRol().equals("ADMIN") || usuario.getRol().equals("VENDEDOR"));
+    private Usuario getUsuarioAutenticado() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            return null;
+        }
+        String username = auth.getName();
+        return usuarioService.buscarPorUsername(username).orElse(null);
     }
 
     @GetMapping
-    public String dashboard(Model model, HttpSession session) {
-        if (!tieneAcceso(session)) return "redirect:/auth/login";
+    public String dashboard(Model model) {
+        if (getUsuarioAutenticado() == null) return "redirect:/auth/login";
 
         model.addAttribute("totalClientes", clienteService.listarPorEstado(1).size());
         model.addAttribute("totalProductos", productoService.listarPorEstado(1).size());

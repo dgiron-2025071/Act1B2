@@ -3,26 +3,33 @@ package com.diegogiron.kinalapp.controller.web;
 import com.diegogiron.kinalapp.entity.Producto;
 import com.diegogiron.kinalapp.entity.Usuario;
 import com.diegogiron.kinalapp.service.IProductoService;
-import jakarta.servlet.http.HttpSession;
+import com.diegogiron.kinalapp.service.IUsuarioService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.security.Principal;
+
 @Controller
 @RequestMapping("/tienda")
 public class TiendaController {
 
     private final IProductoService productoService;
+    private final IUsuarioService usuarioService;
 
-    public TiendaController(IProductoService productoService) {
+    public TiendaController(IProductoService productoService, IUsuarioService usuarioService) {
         this.productoService = productoService;
+        this.usuarioService = usuarioService;
     }
 
     @GetMapping
-    public String listarProductos(Model model, HttpSession session) {
-        Usuario usuario = (Usuario) session.getAttribute("usuario");
+    public String listarProductos(Model model, Principal principal) {
+        if (principal == null) {
+            return "redirect:/auth/login";
+        }
+        Usuario usuario = usuarioService.buscarPorUsername(principal.getName()).orElse(null);
         if (usuario == null) {
             return "redirect:/auth/login";
         }
@@ -32,8 +39,8 @@ public class TiendaController {
     }
 
     @GetMapping("/producto/{id}")
-    public String verProducto(@PathVariable int id, Model model, HttpSession session) {
-        if (session.getAttribute("usuario") == null) {
+    public String verProducto(@PathVariable int id, Model model, Principal principal) {
+        if (principal == null) {
             return "redirect:/auth/login";
         }
         Producto producto = productoService.buscarPorId(id).orElse(null);
