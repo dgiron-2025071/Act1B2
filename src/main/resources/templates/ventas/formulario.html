@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Nueva Venta</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <th:block th:with="titulo='Nueva Venta'"/>
+
+    <div class="card">
+        <form th:action="@{/web/ventas/guardar}" method="post">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">Cliente *</label>
+                        <select name="dpiCliente" class="form-control" required>
+                            <option value="">Seleccione un cliente</option>
+                            <option th:each="c : ${clientes}" th:value="${c.DPICliente}"
+                                    th:text="${c.nombreCliente + ' ' + c.apellidoCliente}"></option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">Vendedor *</label>
+                        <select name="codigoUsuario" class="form-control" required>
+                            <option value="">Seleccione un vendedor</option>
+                            <option th:each="u : ${usuarios}" th:value="${u.codigoUsuario}"
+                                    th:text="${u.username}"></option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 justify-content-end mt-4">
+                <a th:href="@{/web/ventas}" class="btn btn-outline">Cancelar</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Crear Venta y Agregar Detalles
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

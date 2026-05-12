@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Mi Carrito</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <th:block th:with="titulo='Carrito de Compras'"/>
+
+    <div class="alert alert-info">
+        <i class="fas fa-truck"></i> Método de pago: <strong>Pago contra entrega</strong>
+    </div>
+
+    <div th:if="${items == null or items.empty}" class="text-center py-5">
+        <i class="fas fa-shopping-cart fa-4x mb-3" style="color: var(--gray-400);"></i>
+        <h3>Tu carrito está vacío</h3>
+        <a th:href="@{/tienda}" class="btn btn-primary mt-3">
+            <i class="fas fa-store"></i> Ir a la tienda
+        </a>
+    </div>
+
+    <div th:if="${not #lists.isEmpty(items)}">
+        <!-- formulario con el botón DENTRO -->
+        <form th:action="@{/carrito/actualizar}" method="post">
+            <div class="card">
+                <div th:each="item : ${items}" class="cart-item">
+                    <div style="flex:2;">
+                        <h5 th:text="${item.producto.nombreProducto}"></h5>
+                        <small>Precio: Q <span th:text="${#numbers.formatDecimal(item.producto.precio, 0, 'COMMA', 2, 'POINT')}"></span></small>
+                        <br/>
+                        <small>Stock disponible: <span th:text="${item.producto.stock}"></span></small>
+                    </div>
+                    <div style="flex:1;">
+                        <input type="number" th:name="'cant_' + ${item.producto.codigoProducto}"
+                               th:value="${item.cantidad}" min="1"
+                               th:max="${item.producto.stock + item.cantidad}"
+                               class="form-control form-control-sm" style="width: 80px;">
+                    </div>
+                    <div style="flex:1; text-align: right;">
+                        Q <span th:text="${#numbers.formatDecimal(item.subtotal, 0, 'COMMA', 2, 'POINT')}"></span>
+                    </div>
+                    <div style="margin-left: 1rem;">
+                        <a th:href="@{/carrito/eliminar/{id}(id=${item.producto.codigoProducto})}"
+                           class="btn btn-danger btn-sm">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                    <h3>Total: Q <span th:text="${#numbers.formatDecimal(total, 0, 'COMMA', 2, 'POINT')}"></span></h3>
+                    <div>
+                        <button type="submit" class="btn btn-outline me-2">
+                            <i class="fas fa-sync-alt"></i> Actualizar
+                        </button>
+                        <a th:href="@{/carrito/checkout}" class="btn btn-success">
+                            <i class="fas fa-check-circle"></i> Proceder al pago
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

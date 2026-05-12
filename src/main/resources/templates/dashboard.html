@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Dashboard</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <th:block th:with="titulo='Panel de Control'"/>
+
+    <div class="row g-4">
+        <div class="col-md-6 col-lg-3">
+            <div class="card text-center" style="background: linear-gradient(145deg, var(--primary), var(--primary-light)); color: white;">
+                <i class="fas fa-users fa-3x mb-3"></i>
+                <h3 th:text="${totalClientes}">0</h3>
+                <p class="mb-0">Clientes Activos</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card text-center" style="background: linear-gradient(145deg, var(--secondary), var(--secondary-dark)); color: white;">
+                <i class="fas fa-box fa-3x mb-3"></i>
+                <h3 th:text="${totalProductos}">0</h3>
+                <p class="mb-0">Productos Activos</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card text-center" style="background: linear-gradient(145deg, var(--accent), #e6d0b3); color: var(--primary-dark);">
+                <i class="fas fa-shopping-cart fa-3x mb-3"></i>
+                <h3 th:text="${ventasHoy}">0</h3>
+                <p class="mb-0">Ventas Hoy</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card text-center" style="background: linear-gradient(145deg, var(--primary-dark), #041e47); color: white;">
+                <i class="fas fa-dollar-sign fa-3x mb-3"></i>
+                <h3>Q <span th:text="${#numbers.formatDecimal(totalVentasMes, 0, 'COMMA', 2, 'POINT')}">0.00</span></h3>
+                <p class="mb-0">Total Ventas (Mes)</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <h3>Accesos rápidos</h3>
+        <div class="d-flex gap-3 flex-wrap mt-3">
+            <a th:href="@{/web/clientes/nuevo}" class="btn btn-primary"><i class="fas fa-user-plus"></i> Nuevo Cliente</a>
+            <a th:href="@{/web/productos/nuevo}" class="btn btn-secondary"><i class="fas fa-box-open"></i> Nuevo Producto</a>
+            <a th:href="@{/web/ventas/nuevo}" class="btn btn-accent"><i class="fas fa-cart-plus"></i> Nueva Venta</a>
+            <a th:href="@{/tienda}" class="btn btn-outline"><i class="fas fa-store"></i> Ir a Tienda</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

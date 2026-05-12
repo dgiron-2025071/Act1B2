@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Detalle Venta</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <th:block th:with="titulo='Detalle de Venta #' + ${venta.codigoVenta}"/>
+
+    <div class="card">
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Código:</strong> <span th:text="${venta.codigoVenta}"></span></p>
+                <p><strong>Fecha:</strong> <span th:text="${venta.fechaVenta}"></span></p>
+                <p><strong>Cliente:</strong> <span th:text="${venta.cliente?.nombreCliente + ' ' + venta.cliente?.apellidoCliente}"></span></p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Vendedor:</strong> <span th:text="${venta.usuario?.username}"></span></p>
+                <p><strong>Total:</strong> Q <span th:text="${#numbers.formatDecimal(venta.total, 0, 'COMMA', 2, 'POINT')}"></span></p>
+                <p><strong>Estado:</strong>
+                    <span th:if="${venta.estado == 1}" class="badge badge-success">Activa</span>
+                    <span th:if="${venta.estado == 0}" class="badge badge-danger">Anulada</span>
+                </p>
+            </div>
+        </div>
+        <div class="mt-4">
+            <a th:href="@{/web/ventas}" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Volver</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

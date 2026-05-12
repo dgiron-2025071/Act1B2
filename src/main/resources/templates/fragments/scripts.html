@@ -1,0 +1,17 @@
+<th:block th:fragment="scripts">
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.btn-delete').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const title = btn.getAttribute('title') || '';
+                    const mensaje = title.toLowerCase().includes('anular')
+                        ? '¿Está seguro de anular esta venta? Se restaurará el stock de los productos.'
+                        : '¿Está seguro de eliminar este registro?';
+                    if (!confirm(mensaje)) {
+                        e.preventDefault();
+                    }
+                });
+            });
+        });
+    </script>
+</th:block>

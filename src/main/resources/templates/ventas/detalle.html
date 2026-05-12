@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Detalles de Venta</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <th:block th:with="titulo='Detalles de Venta #' + ${venta.codigoVenta}"/>
+
+    <div class="card mb-4">
+        <h4>Información de la Venta</h4>
+        <p><strong>Cliente:</strong> <span th:text="${venta.cliente?.nombreCliente + ' ' + venta.cliente?.apellidoCliente}"></span></p>
+        <p><strong>Vendedor:</strong> <span th:text="${venta.usuario?.username}"></span></p>
+        <p><strong>Fecha:</strong> <span th:text="${venta.fechaVenta}"></span></p>
+        <p><strong>Total:</strong> Q <span th:text="${#numbers.formatDecimal(venta.total, 0, 'COMMA', 2, 'POINT')}"></span></p>
+        <p><strong>Estado:</strong>
+            <span th:if="${venta.estado == 1}" class="badge badge-success">Activa</span>
+            <span th:if="${venta.estado == 0}" class="badge badge-danger">Anulada</span>
+        </p>
+    </div>
+
+    <!-- Formulario para agregar productos (solo si venta activa) -->
+    <div th:if="${venta.estado == 1}" class="card mb-4">
+        <h4>Agregar Producto</h4>
+        <form th:action="@{/web/ventas/detalles/agregar}" method="post">
+            <input type="hidden" name="idVenta" th:value="${venta.codigoVenta}"/>
+            <div class="row align-items-end">
+                <div class="col-md-5">
+                    <div class="form-group">
+                        <label class="form-label">Producto</label>
+                        <select name="idProducto" class="form-control" required>
+                            <option value="">Seleccione un producto</option>
+                            <option th:each="p : ${productos}" th:value="${p.codigoProducto}"
+                                    th:text="${p.nombreProducto + ' (Stock: ' + p.stock + ')'}"></option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-label">Cantidad</label>
+                        <input type="number" name="cantidad" class="form-control" min="1" required>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-plus"></i> Agregar
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="card">
+        <h4>Detalles Agregados</h4>
+        <div class="table-container">
+            <table>
+                <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Cantidad</th>
+                    <th>Precio Unitario</th>
+                    <th>Subtotal</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="d : ${detalles}">
+                    <td th:text="${d.producto?.nombreProducto}"></td>
+                    <td th:text="${d.cantidad}"></td>
+                    <td>Q <span th:text="${#numbers.formatDecimal(d.precioUnitario, 0, 'COMMA', 2, 'POINT')}"></span></td>
+                    <td>Q <span th:text="${#numbers.formatDecimal(d.subtotal, 0, 'COMMA', 2, 'POINT')}"></span></td>
+                </tr>
+                <tr th:if="${detalles == null or detalles.empty}">
+                    <td colspan="4" class="text-center py-4">No hay detalles agregados</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="mt-3">
+            <a th:href="@{/web/ventas}" class="btn btn-outline">Volver a Ventas</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

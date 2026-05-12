@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Detalle Venta Item</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <th:block th:with="titulo='Detalle de Venta #' + ${detalle.codigoDetalle}"/>
+
+    <div class="card">
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Código Detalle:</strong> <span th:text="${detalle.codigoDetalle}"></span></p>
+                <p><strong>Venta N°:</strong> <span th:text="${detalle.venta?.codigoVenta}"></span></p>
+                <p><strong>Producto:</strong> <span th:text="${detalle.producto?.nombreProducto}"></span></p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Cantidad:</strong> <span th:text="${detalle.cantidad}"></span></p>
+                <p><strong>Precio Unitario:</strong> Q <span th:text="${#numbers.formatDecimal(detalle.precioUnitario, 0, 'COMMA', 2, 'POINT')}"></span></p>
+                <p><strong>Subtotal:</strong> Q <span th:text="${#numbers.formatDecimal(detalle.subtotal, 0, 'COMMA', 2, 'POINT')}"></span></p>
+                <p><strong>Estado:</strong>
+                    <span th:if="${detalle.estado == 1}" class="badge badge-success">Activo</span>
+                    <span th:if="${detalle.estado == 0}" class="badge badge-danger">Inactivo</span>
+                </p>
+            </div>
+        </div>
+        <div class="mt-4">
+            <a th:href="@{/web/detalle-ventas}" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Volver</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

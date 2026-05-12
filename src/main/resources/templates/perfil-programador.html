@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Programador</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <th:block th:with="titulo='Sobre el Programador'"/>
+
+    <div class="card" style="max-width: 700px; margin: 0 auto;">
+        <div class="text-center mb-4">
+            <!-- FOTO DEL PROGRAMADOR -->
+            <img th:src="@{/images/dgiron.png}"
+                 alt="Foto de Diego Girón"
+                 class="profile-photo">
+            <h2 th:text="${nombre}" style="color: var(--primary-dark); margin-top: 1rem;">Diego Girón</h2>
+            <p class="badge badge-success" th:text="${carnet}">2020-40123</p>
+        </div>
+
+        <div class="row">
+            <div class="col-12 mb-3">
+                <i class="fas fa-envelope me-2" style="color: var(--primary);"></i>
+                <strong>Correo:</strong> <span th:text="${correo}"></span>
+            </div>
+            <div class="col-12 mb-3">
+                <i class="fab fa-github me-2" style="color: var(--primary);"></i>
+                <strong>GitHub:</strong>
+                <a th:href="${github}" target="_blank" th:text="${github}" style="color: var(--primary);"></a>
+            </div>
+            <div class="col-12 mb-3">
+                <i class="fas fa-quote-right me-2" style="color: var(--secondary);"></i>
+                <p th:text="${descripcion}" class="fst-italic"></p>
+            </div>
+            <div class="col-12">
+                <i class="fas fa-code me-2" style="color: var(--accent-dark);"></i>
+                <strong>Habilidades:</strong> <span th:text="${habilidades}"></span>
+            </div>
+        </div>
+
+        <hr style="margin: 2rem 0;">
+
+        <div class="text-center">
+            <a th:href="@{/web/dashboard}" class="btn btn-outline me-2">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+            <a href="#" class="btn btn-primary">
+                <i class="fas fa-paper-plane"></i> Contactar
+            </a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

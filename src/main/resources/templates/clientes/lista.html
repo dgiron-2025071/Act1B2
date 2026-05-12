@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Clientes</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <th:block th:with="titulo='Gestión de Clientes'"/>
+
+    <div class="filter-bar">
+        <a th:href="@{/web/clientes}" class="filter-btn" th:classappend="${param.estado == null} ? 'active'">Todos</a>
+        <a th:href="@{/web/clientes(estado=1)}" class="filter-btn" th:classappend="${param.estado == '1'} ? 'active'">Activos</a>
+        <a th:href="@{/web/clientes(estado=0)}" class="filter-btn" th:classappend="${param.estado == '0'} ? 'active'">Inactivos</a>
+        <a th:href="@{/web/clientes/nuevo}" class="btn btn-primary ms-auto">
+            <i class="fas fa-plus-circle"></i> Nuevo Cliente
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="table-container">
+            <table>
+                <thead>
+                <tr>
+                    <th>DPI</th>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th>Dirección</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="cliente : ${clientes}">
+                    <td th:text="${cliente.DPICliente}"></td>
+                    <td th:text="${cliente.nombreCliente}"></td>
+                    <td th:text="${cliente.apellidoCliente}"></td>
+                    <td th:text="${cliente.direccion}"></td>
+                    <td>
+                        <span th:if="${cliente.estado == 1}" class="badge badge-success">Activo</span>
+                        <span th:if="${cliente.estado == 0}" class="badge badge-danger">Inactivo</span>
+                    </td>
+                    <td>
+                        <div class="d-flex gap-2">
+                            <a th:href="@{/web/clientes/ver/{dpi}(dpi=${cliente.DPICliente})}" class="btn btn-outline btn-sm"><i class="fas fa-eye"></i></a>
+                            <a th:href="@{/web/clientes/editar/{dpi}(dpi=${cliente.DPICliente})}" class="btn btn-outline btn-sm"><i class="fas fa-edit"></i></a>
+                            <a th:href="@{/web/clientes/eliminar/{dpi}(dpi=${cliente.DPICliente})}" class="btn btn-danger btn-sm btn-delete"><i class="fas fa-trash"></i></a>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${clientes == null or clientes.empty}">
+                    <td colspan="6" class="text-center py-4">No hay clientes registrados</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>
